@@ -1,0 +1,69 @@
+services:
+  wireguard-test:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: wireguard-test
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    ports:
+      - "51820:51820/udp"
+      - "51821:51821/udp"  # For second interface
+      - "9586:9586"
+    volumes:
+      - ./configs:/etc/wireguard:ro
+      - ./test-health.sh:/usr/local/bin/test-health.sh:ro
+    restart: "no"
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/test-health.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # Test client to verify WireGuard connectivity
+  wireguard-client:
+    image: alpine:3
+    container_name: wireguard-client-test
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    volumes:
+      - ./client-configs:/etc/wireguard:ro
+    command: |
+      sh -c "
+        apk add --no-cache wireguard-tools &&
+        echo 'Starting WireGuard client...' &&
+        wg-quick up wg0 &&
+        echo 'WireGuard client started successfully' &&
+        sleep 30 &&
+        wg show &&
+        ping -c 4 10.0.0.1 &&
+        echo 'Test completed'
+      "
+    depends_on:
+      - wireguard-test
+    restart: "no"
+
+  # Prometheus for metrics testing
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-test
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    depends_on:
+      - wireguard-test
+    restart: "no"
+
+networks:
+  default:
+    name: wireguard-test-network
