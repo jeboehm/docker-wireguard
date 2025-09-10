@@ -10,10 +10,13 @@ services:
     ports:
       - "51820:51820/udp"
       - "51821:51821/udp"  # For second interface
+      - "51822:51822/udp"  # For third interface (env var test)
       - "9586:9586"
     volumes:
       - ./configs:/etc/wireguard:ro
       - ./test-health.sh:/usr/local/bin/test-health.sh:ro
+    environment:
+      - WIREGUARD_WG2_PRIVATE_KEY=yCXePI0QO+UJAGbFyf+/Hqo0rGjm+O1GfQqCUFfNvE8=
     restart: "no"
     healthcheck:
       test: ["CMD", "/usr/local/bin/test-health.sh"]
