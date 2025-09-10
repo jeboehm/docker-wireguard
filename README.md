@@ -236,7 +236,7 @@ The test suite validates:
 
 ```bash
 cd test
-docker-compose -f docker-compose.yml up -d
+docker compose -f docker-compose.yml up -d
 
 # Check WireGuard status
 docker exec wireguard-test wg show

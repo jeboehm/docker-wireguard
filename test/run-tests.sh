@@ -28,7 +28,7 @@ print_status() {
 cleanup() {
     print_status $YELLOW "🧹 Cleaning up test environment..."
     cd "$TEST_DIR"
-    docker-compose -f "$COMPOSE_FILE" down -v --remove-orphans 2>/dev/null || true
+    docker compose -f "$COMPOSE_FILE" down -v --remove-orphans 2>/dev/null || true
     docker system prune -f >/dev/null 2>&1 || true
 }
 
@@ -40,11 +40,6 @@ print_status $BLUE "📋 Checking prerequisites..."
 
 if ! command -v docker &> /dev/null; then
     print_status $RED "❌ Docker is not installed"
-    exit 1
-fi
-
-if ! command -v docker-compose &> /dev/null; then
-    print_status $RED "❌ Docker Compose is not installed"
     exit 1
 fi
 
@@ -65,7 +60,7 @@ print_status $GREEN "✅ Test image built successfully"
 # Start test environment
 print_status $BLUE "🚀 Starting test environment..."
 cd "$TEST_DIR"
-docker-compose -f "$COMPOSE_FILE" up -d
+docker compose -f "$COMPOSE_FILE" up -d
 
 # Wait for services to be ready
 print_status $BLUE "⏳ Waiting for services to be ready..."
@@ -75,11 +70,11 @@ sleep 30
 print_status $BLUE "🏥 Running health checks..."
 
 # Check if WireGuard container is healthy
-if docker-compose -f "$COMPOSE_FILE" ps wireguard-test | grep -q "healthy"; then
+if docker compose -f "$COMPOSE_FILE" ps wireguard-test | grep -q "healthy"; then
     print_status $GREEN "✅ WireGuard container is healthy"
 else
     print_status $RED "❌ WireGuard container is not healthy"
-    docker-compose -f "$COMPOSE_FILE" logs wireguard-test
+    docker compose -f "$COMPOSE_FILE" logs wireguard-test
     exit 1
 fi
 
@@ -120,7 +115,7 @@ fi
 
 # Test graceful shutdown
 print_status $BLUE "🛑 Testing graceful shutdown..."
-docker-compose -f "$COMPOSE_FILE" stop wireguard-test
+docker compose -f "$COMPOSE_FILE" stop wireguard-test
 sleep 5
 
 # Check if interfaces were properly torn down
@@ -146,7 +141,7 @@ echo "  - Prometheus UI: http://localhost:9090"
 echo "  - WireGuard server: localhost:51820 (wg0), localhost:51821 (wg1)"
 
 print_status $YELLOW "💡 To keep the test environment running, use:"
-echo "  docker-compose -f $COMPOSE_FILE up -d"
+echo "  docker compose -f $COMPOSE_FILE up -d"
 echo ""
 print_status $YELLOW "💡 To stop the test environment, use:"
-echo "  docker-compose -f $COMPOSE_FILE down"
+echo "  docker compose -f $COMPOSE_FILE down"
