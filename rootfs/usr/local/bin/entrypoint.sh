@@ -1,22 +1,20 @@
 #!/bin/sh
 set -e
 
-configArgs="${EXPORTER_CMD_ARGS:-}"
-
 start() {
     for conf in /etc/wireguard/wg*.conf
     do
-        echo "Starting WireGuard for ${conf}"
+        interface=$(basename ${conf} .conf)
+        echo "Starting WireGuard for ${interface}"
         wg-quick up ${conf}
-
-        configArgs="${configArgs} -n ${conf}"
     done
 }
 
 stop() {
     for conf in /etc/wireguard/wg*.conf
     do
-        echo "Stopping WireGuard for ${conf}"
+        interface=$(basename ${conf} .conf)
+        echo "Stopping WireGuard for ${interface}"
         wg-quick down ${conf}
     done
 }
@@ -24,4 +22,4 @@ stop() {
 start
 trap stop TERM INT QUIT
 
-/usr/local/bin/prometheus_wireguard_exporter ${configArgs}
+/usr/local/bin/prometheus_wireguard_exporter ${EXPORTER_CMD_ARGS:-}

@@ -32,6 +32,13 @@ docker-wireguard/
 │       └── local/
 │           └── bin/
 │               └── entrypoint.sh # Container startup script
+├── test/                       # Test suite and configurations
+│   ├── docker-compose.yml # Test environment setup
+│   ├── run-tests.sh           # Comprehensive test runner
+│   ├── test-health.sh         # Container health checks
+│   ├── configs/               # WireGuard server test configs
+│   ├── client-configs/        # WireGuard client test configs
+│   ├── prometheus.yml         # Prometheus test configuration
 ├── Dockerfile                   # Container build definition
 └── README.md                   # Project documentation
 ```
@@ -202,6 +209,43 @@ docker run -it --rm \
   -v $(pwd)/test-configs:/etc/wireguard \
   -e EXPORTER_CMD_ARGS="-log-level=debug" \
   docker-wireguard-dev
+```
+
+## Testing
+
+### Test Suite
+
+A test suite is available in the `test/` directory to validate the WireGuard container functionality.
+
+#### Full Test Suite
+
+```bash
+cd test
+./run-tests.sh
+```
+
+The test suite validates:
+- ✅ Docker image builds successfully
+- ✅ WireGuard interfaces start correctly
+- ✅ Multiple interface support works
+- ✅ Prometheus metrics are exported
+- ✅ Entrypoint script functions properly
+- ✅ Graceful shutdown works
+
+#### Manual Testing
+
+```bash
+cd test
+docker-compose -f docker-compose.yml up -d
+
+# Check WireGuard status
+docker exec wireguard-test wg show
+
+# Check metrics
+curl http://localhost:9586/metrics
+
+# Access Prometheus UI
+open http://localhost:9090
 ```
 
 ## Troubleshooting
